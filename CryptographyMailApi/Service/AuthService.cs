@@ -1,6 +1,6 @@
 ﻿using CryptographyMailApi.Data;
+using CryptographyMailApi.Helpers;
 using CryptographyMailApi.Models;
-using System.Diagnostics.Eventing.Reader;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,10 +9,12 @@ namespace CryptographyMailApi.Service
     public class AuthService
     {
         private readonly ApplicationDbContext _context;
+        //private readonly FirebaseAuthHelper _firebaseAuthHelper;
 
-        public AuthService(ApplicationDbContext context)
+        public AuthService(ApplicationDbContext context/*, FirebaseAuthHelper firebaseAuthHelper*/)
         {
             _context = context;
+            //_firebaseAuthHelper = firebaseAuthHelper;
         }
 
         public (User user, string privateKey) Register(string email, string password)
@@ -30,17 +32,19 @@ namespace CryptographyMailApi.Service
 
             _context.Users.Add(user);
             _context.SaveChanges();
+            //_firebaseAuthHelper.RegisterUser(user);
 
             return (user, privateKey);
         }
 
         public User Authenticate(string email, string password)
         {
+            //var firebaseUser = _firebaseAuthHelper.LoginUser(email);
             var user = _context.Users.FirstOrDefault(u => u.Email.ToLower().Equals(email.ToLower()));
-            if (user == null)
+            if (user == null/* && firebaseUser == null*/)
                 throw new System.Exception("Kullanıcı bulunamadı.");
                 
-            else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt)/* && !VerifyPasswordHash(password, firebaseUser.PasswordHash, firebaseUser.PasswordSalt)*/)
                 throw new System.Exception("Şifre hatalı.");
 
             return (user);
@@ -49,7 +53,15 @@ namespace CryptographyMailApi.Service
         public User GetUserByMail(string userMail)
         {
             var receiver = _context.Users.FirstOrDefault(u => u.Email.Equals(userMail));
+            //var firebaseReceiver = _firebaseAuthHelper.GetUserByMail(userMail);
             return receiver;
+        }
+
+        public User GetUserById(int userId)
+        {
+            var user = _context.Users.Find(userId);
+            //var firebaseUser = _firebaseAuthHelper.GetUserById(userId);
+            return user;
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

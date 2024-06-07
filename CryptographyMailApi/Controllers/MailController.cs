@@ -24,7 +24,7 @@ namespace CryptographyMailApi.Controllers
         [Authorize]
         public IActionResult SendMail([FromBody] MailRequest request)
         {
-            _mailService.SendMail(request.ReceiverMail, request.Subject, request.Message);
+            _mailService.SendMail(request.ReceiverMail, request.Subject, request.Message, request.PrivateKey);
             return Ok();
         }
 
@@ -46,7 +46,20 @@ namespace CryptographyMailApi.Controllers
             if (decryptedMessage is null)
                 return BadRequest("Geçersiz şifre çözme anahtarı veya posta kimliği");
 
-            return Ok(new { DecryptedMessage = decryptedMessage });
+            return Ok(decryptedMessage);
+        }
+
+        [HttpGet("cryptomail")]
+        [Authorize]
+        public IActionResult GetCryptoMail(int mailId)
+        {
+            var user = _tokenService.GetUserFromToken();
+            var mail = _mailService.GetCryptoMail(user.Id, mailId);
+
+            if (mail is null)
+                return BadRequest("Geçersiz posta kimliği");
+
+            return Ok(mail);
         }
     }
     public class MailRequest
@@ -54,6 +67,7 @@ namespace CryptographyMailApi.Controllers
         public List<String> ReceiverMail { get; set; }
         public string Subject { get; set; }
         public string Message { get; set; }
+        public string PrivateKey { get; set; }
     }
 
     public class DecryptRequest

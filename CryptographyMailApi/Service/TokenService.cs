@@ -1,4 +1,5 @@
 ﻿using CryptographyMailApi.Data;
+using CryptographyMailApi.Helpers;
 using CryptographyMailApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,12 +13,15 @@ namespace CryptographyMailApi.Service
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        //private readonly FirebaseAuthHelper _firebaseAuthHelper;
 
-        public TokenService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context)
+
+        public TokenService(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context/*, FirebaseAuthHelper firebaseAuthHelper*/)
         {
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _context = context;
+            //_firebaseAuthHelper = firebaseAuthHelper;
         }
 
         public string GenerateToken(User user)
@@ -68,7 +72,10 @@ namespace CryptographyMailApi.Service
                 var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken validatedToken);
                 var userId = int.Parse(principal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-                return _context.Users.FirstOrDefault(u => u.Id == userId);
+                //var user = _firebaseAuthHelper.GetUserId(userId);
+                var user = _context.Users.Find(userId);
+                return user;
+
             }
             catch
             {

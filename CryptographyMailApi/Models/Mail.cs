@@ -10,5 +10,6 @@ namespace CryptographyMailApi.Models
         public string Subject { get; set; }
         public string EncryptedBody { get; set; }
         public DateTime SendAt { get; set; } = DateTime.UtcNow;
+        public string Approv { get; set; }
     }
 }

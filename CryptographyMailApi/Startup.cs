@@ -1,4 +1,5 @@
 ﻿using CryptographyMailApi.Data;
+using CryptographyMailApi.Helpers;
 using CryptographyMailApi.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,11 @@ namespace CryptographyMailApi
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -30,6 +36,7 @@ namespace CryptographyMailApi
             });
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -42,6 +49,9 @@ namespace CryptographyMailApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddScoped<TokenService>();
+            //services.AddScoped<FirebaseAuthHelper>();
+            services.AddHttpContextAccessor();
             services.AddDbContext<ApplicationDbContext>(opt =>
             opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<AuthService>();
@@ -79,8 +89,6 @@ namespace CryptographyMailApi
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
             });
-            services.AddScoped<TokenService>();
-            services.AddHttpContextAccessor();
         }
     }
 }
